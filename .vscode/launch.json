@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/simple-re-engine.exe",
+            "args": [
+            ],
+            "cwd": "${workspaceFolder}",
+            // "preLaunchTask": "cargo build"
+        },
+        {
+            "name": "Release",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/release/simple-re-engine.exe",
+            "args": [
+            ],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cargo build release"
+        }
+    ]
+}
