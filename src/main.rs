@@ -15,6 +15,5 @@ fn parse(mut regex: &str ) -> parser::ParseContext{
 }   
 
 fn main() {
-    parse(&"[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z0-9]+.[a-zA-Z]{2,}".to_string());
+    parse(&"[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z  0-9]+.[a-zA-Z]{2,}".to_string());
 }
-
