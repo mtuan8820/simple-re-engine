@@ -1,5 +1,6 @@
 mod parser;
 mod token;
+mod state;
 
 fn parse(mut regex: &str ) -> parser::ParseContext{
     let mut ctx = parser::ParseContext{
