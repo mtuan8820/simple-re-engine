@@ -26,8 +26,6 @@ impl Process{
 struct Group;
 impl Parser for Group{
     fn parse(&self, regex: &str, ctx: &mut ParseContext){
-        print!("parse group");
-
         ctx.pos += 1;
 
         while regex.as_bytes()[ctx.pos] != b')' {
@@ -63,9 +61,18 @@ impl Parser for Bracket{
         let mut literal_set: HashMap<u8, bool> = HashMap::new();
 
         for l in literals.iter(){
-            for i in l.chars() {
-                literal_set.insert(i as u8, true);
-            } 
+            if l.chars().count() == 2{
+                let mut chars = l.chars();
+                let start = chars.next().unwrap() as u8;
+                let end = chars.next().unwrap() as u8;
+
+                for c in start..=end {
+                    literal_set.insert(c, true);
+                }
+            } else {
+                let c: char = l.chars().next().unwrap();
+                literal_set.insert(c as u8, true);
+            }
         }
         println!("literal_set: {:#?}", literal_set);
 
@@ -82,14 +89,14 @@ impl Parser for Bracket{
 struct Or;
 impl Parser for Or{
     fn parse(&self, regex: &str, ctx: &mut ParseContext){
-        let mut rhs_context = ParseContext{
+        let rhs_context= &mut ParseContext{
             pos: ctx.pos,
             ..Default::default()
         };
 
         rhs_context.pos+=1;
         while rhs_context.pos < regex.len() && regex.as_bytes()[rhs_context.pos] != b')'{
-            process_general(regex, ctx);
+            process_general(regex, rhs_context);
             rhs_context.pos+=1;
         }
 
@@ -100,7 +107,7 @@ impl Parser for Or{
 
         let right: Token = Token{
             token_type: TokenType::GroupUncaptured,
-            value: Box::new(rhs_context.tokens)
+            value: Box::new(std::mem::take(&mut rhs_context.tokens))
         };
 
         ctx.pos = rhs_context.pos;
@@ -136,7 +143,7 @@ impl Parser for Repeat{
 
         let last_token = ctx.tokens.pop();
         
-        let playload = RepeatPayload{
+        let payload = RepeatPayload{
             max: max, 
             min: min,
             token: last_token.unwrap(),
@@ -144,7 +151,7 @@ impl Parser for Repeat{
 
         let new_token = Token{
             token_type: TokenType::Repeat,
-            value: Box::new(playload)
+            value: Box::new(payload)
         };
 
         ctx.tokens.push(new_token);
@@ -157,7 +164,7 @@ struct RepeatSpecified;
 impl Parser for RepeatSpecified{
     fn parse(&self, regex: &str, ctx: &mut ParseContext) {
         let start = ctx.pos+1;
-        while(regex.as_bytes()[ctx.pos] != b'}'){
+        while regex.as_bytes()[ctx.pos] != b'}'{
             ctx.pos+=1;
         }
 
@@ -223,6 +230,7 @@ pub fn process_general(regex: &str, ctx: &mut ParseContext){
             };
 
             ctx.tokens.push(new_token);
+            ctx.pos = group_ctx.pos;
         },
         Some('[') => {
             Process::process(Bracket, regex, ctx);
@@ -236,13 +244,16 @@ pub fn process_general(regex: &str, ctx: &mut ParseContext){
         Some('{') => {
             Process::process(RepeatSpecified, regex, ctx);
         },
-        _=>{
+        Some(c) => {
             let new_token = Token{
                 token_type: TokenType::Literal,
-                value: Box::new(ch)
+                value: Box::new(c)
             };
 
             ctx.tokens.push(new_token);
+        },
+        None => {
+            // pos is past the end of the regex — nothing to parse.
         },
     };
 }

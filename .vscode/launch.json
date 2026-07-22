@@ -3,23 +3,17 @@
     "configurations": [
         {
             "name": "Debug",
-            "type": "node",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/simple-re-engine.exe",
-            "args": [
-            ],
-            "cwd": "${workspaceFolder}",
-            // "preLaunchTask": "cargo build"
-        },
-        {
-            "name": "Release",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceFolder}/target/release/simple-re-engine.exe",
-            "args": [
-            ],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cargo build release"
+            "cargo": {
+                "args": ["test", "foo", "--", "--test-threads=3"], // Cargo command line to run the debug target
+                // Optional fields:
+                "env": { "RUSTFLAGS": "-Clinker=ld.mold" },        // Extra environment variables
+                "cwd": "${workspaceFolder}",                       // Cargo working directory
+                "problemMatcher": "$rustc",                        // Problem matcher(s) for Cargo output
+            },
+            "args": [],
+            "preLaunchTask": "cargo build"
         }
     ]
 }

@@ -1,3 +1,5 @@
+use crate::state::NFA;
+
 mod parser;
 mod token;
 mod state;
@@ -16,5 +18,7 @@ fn parse(mut regex: &str ) -> parser::ParseContext{
 }   
 
 fn main() {
-    parse(&"[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z  0-9]+.[a-zA-Z]{2,}".to_string());
+    let ctx = parse(&"[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z  0-9]+.[a-zA-Z]{2,}".to_string());
+    let mut nfa = NFA{..Default::default()};
+    nfa.context_to_nfa(&ctx);
 }
