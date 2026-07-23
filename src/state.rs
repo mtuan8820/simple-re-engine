@@ -170,7 +170,70 @@ impl NFA{
         }
 
         self.states[end_pos].terminate = true;
-        
+
         start_pos
     }
+
+    /// Run `input` against this NFA. Returns true if it is accepted.
+    pub fn matches(&self, input: &str) -> bool {
+        let start_pos = match self.states.iter().position(|s| s.start) {
+            Some(pos) => pos,
+            None => return false,
+        };
+        self.states[start_pos].check(input, 0, &self.states)
+    }
+}
+
+const START_OF_TEXT: u8 = 1;
+const END_OF_TEXT: u8 = 2;
+
+trait Check{
+    fn check(&self, input: &str, pos: usize, states: &Vec<State>) -> bool;
+}
+
+fn get_char(input: &str, pos: usize) -> u8{
+    if pos >= input.len(){
+        return END_OF_TEXT
+    } 
+    if pos < 0 {
+        return START_OF_TEXT
+    }
+    match input.chars().nth(pos){
+        Some(c) => c as u8,
+        None => panic!("empty string")
+    }
+}
+
+impl Check for State {
+        fn check(&self, input: &str, pos: usize, states: &Vec<State>) -> bool{
+            let ch = get_char(input, pos);
+            if ch == END_OF_TEXT && self.terminate{
+                return true
+            }
+
+            if let Some(next_states) = self.transitions.get(&ch){
+                for next_state_pos in next_states{
+                    let next_state = &states[*next_state_pos];
+                    if next_state.check(input, pos+1, &states){
+                        return true
+                    }
+                }
+            }
+
+            if let Some(epsilon_states) = self.transitions.get(&EPSILON){
+                for i in epsilon_states{
+                    let state = &states[*i];
+                    if state.check(input, pos, &states){
+                        return true
+                    }
+
+                    if ch == START_OF_TEXT && state.check(input, pos+1, &states){
+                        return true
+                    }
+                }
+            }
+
+            false
+        }
+
 }

@@ -3,6 +3,7 @@ use crate::state::NFA;
 mod parser;
 mod token;
 mod state;
+mod test;
 
 fn parse(mut regex: &str ) -> parser::ParseContext{
     let mut ctx = parser::ParseContext{
